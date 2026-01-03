@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TreeChat v0</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="row">
+        <input id="newTitle" type="text" placeholder="New root title..." />
+        <button id="btnCreateRoot">Create</button>
+      </div>
+
+      <div class="hint">
+        Branches are Obsidian notes under <code>TreeChat/branches/</code>.
+      </div>
+
+      <div class="treeHeader">Branches</div>
+      <div id="tree"></div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <div class="branchTitle" id="branchTitle">Select a branch</div>
+          <div class="branchMeta" id="branchMeta"></div>
+        </div>
+        <div class="row">
+          <button id="btnDelete" class="danger" title="Delete this branch (and its children)">Delete</button>
+        </div>
+      </div>
+
+      <div id="chat" class="chat"></div>
+
+      <div id="composer" class="composer hidden">
+        <textarea id="userText" placeholder="Message…"></textarea>
+        <div class="row composerRow">
+          <button id="btnSend">Send</button>
+          <div class="spacer"></div>
+          <input id="forkTitle" type="text" placeholder="Fork title…" />
+          <input id="forkFrom" type="number" min="1" placeholder="From M#" />
+          <button id="btnFork">Fork</button>
+        </div>
+        <div class="hint">
+          Example: if you don’t understand a term in <b>M12</b>, fork from <b>12</b> and ask for clarification in the new branch.
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
