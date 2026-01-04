@@ -67,15 +67,20 @@ function escapeHtml(s){
     .replaceAll(">","&gt;");
 }
 
-function renderChat(){
+function renderChat() {
   const chat = el("chat");
   chat.innerHTML = "";
   (activeBranch.messages || []).forEach(m => {
     const div = document.createElement("div");
     div.className = "msg";
+
+    // Clean up the content by removing redundant line breaks
+    const content = (m.content || "").replace(/\n{2,}/g, '\n');
+    const htmlContent = marked.parse(content);
+    
     div.innerHTML = `
       <div class="msgRole">M${m.m} • ${m.role}</div>
-      <div class="msgContent">${escapeHtml(m.content).replaceAll("\n","<br/>")}</div>
+      <div class="msgContent markdown-body">${htmlContent}</div>
     `;
     chat.appendChild(div);
   });

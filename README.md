@@ -45,7 +45,7 @@ Body is a normal transcript, like ChatGPT, but numbered:
 ```
 A branch note contains only the messages created in that branch. Parent history is referenced, not copied.
 
-## What “fork” means in the UI
+## What “fork” Means in the UI
 
 - User is viewing a branch (say b_root). At message M12 (Assistant) they click Fork and give it a name.
 - A new branch note b_clarify is bein created with:
@@ -53,7 +53,7 @@ A branch note contains only the messages created in that branch. Parent history 
 -- fork_from_message = 12
 - Now b_clarify is a child branch that starts from the context “root up to M12”.
 
-## Building the prompt context for any branch
+## Building the Prompt Context for any Branch
 
 - Whenever the user sends a new message in some branch B, the conversation history along the path is bein sent to the model:
 
@@ -66,7 +66,7 @@ context(B) = context(parent(B) up to fork point) + messages(B)
 - Each branch sees the same history the user saw when they forked.
 - Clarifications don’t “pollute” the main branch unless user explicitly brings them back.
 
-## UI navigation
+## UI Navigation
 
 “Go to root” → open root branch
 “Go to fork from here” → open that child branch
@@ -74,7 +74,7 @@ context(B) = context(parent(B) up to fork point) + messages(B)
 “Show forks at this message” → list branches whose (parent_branch_id == currentBranch && fork_from_message == selectedMessage)
 
 
-## Practical problem: context length (token limits)
+## Practical Problem: Context Length (Token Limits)
 
 With long roots, the “prepend parent messages” can become too big.
 
