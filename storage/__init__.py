@@ -12,5 +12,7 @@ from .models import (
     append_message,
     build_context,
     build_message_chain,
-    _apply_summary_checkpoint
+    _apply_summary_checkpoint,
+    log_openai_event,
+    OPENAI_LOG_PATH,
 )

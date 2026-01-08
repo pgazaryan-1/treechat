@@ -5,7 +5,9 @@ It handles all file I/O and data persistence logic.
 """
 
 import os
+import json
 import re
+import traceback
 import uuid
 from datetime import datetime
 from pathlib import Path
@@ -24,9 +26,12 @@ if not VAULT.exists():
 ROOT = VAULT / "TreeChat"
 BRANCH_DIR = ROOT / "branches"
 ARTIFACT_DIR = ROOT / "artifacts"
+LOG_DIR = ROOT / "logs"
+OPENAI_LOG_PATH = LOG_DIR / "openai_requests.jsonl"
 
 BRANCH_DIR.mkdir(parents=True, exist_ok=True)
 ARTIFACT_DIR.mkdir(parents=True, exist_ok=True)
+LOG_DIR.mkdir(parents=True, exist_ok=True)
 
 SYSTEM_PROMPT = os.environ.get(
     "TREECHAT_SYSTEM_PROMPT",
@@ -34,6 +39,30 @@ SYSTEM_PROMPT = os.environ.get(
 )
 
 MSG_HEADER_RE = re.compile(r"^##\s+M(\d+)\s+\((User|Assistant)\)\s*$", re.M)
+
+
+def log_openai_event(event: Dict[str, Any]) -> None:
+    try:
+        payload = dict(event)
+        payload.setdefault("ts", datetime.now().astimezone().isoformat(timespec="seconds"))
+        with OPENAI_LOG_PATH.open("a", encoding="utf-8") as f:
+            f.write(json.dumps(payload, ensure_ascii=False) + "\n")
+    except Exception:
+        try:
+            with OPENAI_LOG_PATH.open("a", encoding="utf-8") as f:
+                f.write(
+                    json.dumps(
+                        {
+                            "ts": datetime.now().astimezone().isoformat(timespec="seconds"),
+                            "type": "logger_error",
+                            "error": traceback.format_exc(),
+                        },
+                        ensure_ascii=False,
+                    )
+                    + "\n"
+                )
+        except Exception:
+            pass
 
 # ----------------------------
 # File I/O Helpers

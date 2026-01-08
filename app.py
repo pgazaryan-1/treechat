@@ -17,6 +17,8 @@ Open:
 """
 
 import os
+import traceback
+import uuid
 from pathlib import Path
 from typing import Dict, List
 
@@ -41,6 +43,7 @@ SYSTEM_PROMPT = os.environ.get(
     "TREECHAT_SYSTEM_PROMPT",
     "You are a helpful assistant. Be concise, clear, and correct.",
 )
+LOG_OPENAI = os.environ.get("TREECHAT_LOG_OPENAI", "1") != "0"
 
 client = OpenAI()
 
@@ -51,11 +54,49 @@ def call_chatgpt(messages: List[Dict[str, str]]) -> str:
     """
     Uses Responses API via official SDK.
     """
-    resp = client.chat.completions.create(
-        model=MODEL,
-        messages=messages,
-    )
-    return resp.choices[0].message.content.strip()
+    request_id = uuid.uuid4().hex
+    if LOG_OPENAI:
+        st.log_openai_event(
+            {
+                "type": "openai_request",
+                "request_id": request_id,
+                "model": MODEL,
+                "messages": messages,
+            }
+        )
+
+    try:
+        resp = client.chat.completions.create(
+            model=MODEL,
+            messages=messages,
+        )
+        assistant_text = resp.choices[0].message.content.strip()
+
+        if LOG_OPENAI:
+            dump = resp.model_dump() if hasattr(resp, "model_dump") else None
+            st.log_openai_event(
+                {
+                    "type": "openai_response",
+                    "request_id": request_id,
+                    "model": MODEL,
+                    "assistant_text": assistant_text,
+                    "response": dump,
+                }
+            )
+
+        return assistant_text
+    except Exception as e:
+        if LOG_OPENAI:
+            st.log_openai_event(
+                {
+                    "type": "openai_error",
+                    "request_id": request_id,
+                    "model": MODEL,
+                    "error": str(e),
+                    "traceback": traceback.format_exc(),
+                }
+            )
+        raise
 
 # ----------------------------
 # FastAPI App
@@ -96,9 +137,7 @@ def api_reply(req: ReplyReq):
 
     # Build context and call model
     ctx = st.build_context(req.branch_id)
-    # Add system prompt to context
-    ctx_with_system = [{"role": "system", "content": SYSTEM_PROMPT}] + ctx
-    assistant_text = call_chatgpt(ctx_with_system)
+    assistant_text = call_chatgpt(ctx)
 
     # Append assistant message
     assistant = st.append_message(req.branch_id, "assistant", assistant_text)
